@@ -1,9 +1,10 @@
 const hre = require('hardhat');
-const { ethers, artifacts, network } = hre;
+const { artifacts } = hre;
+const ethers = require('ethers');
 const { verifiable } = require('./credentials');
-const Cache = require('../Cache');
+const Cache = require('../fs/Cache');
 
-async function runDeployment(name, chainId, args = []) {
+async function runDeployment(name, network, args = []) {
   console.log(`\nDeploying ${name}...`);
   const NewFactory = await ethers.getContractFactory(name);
   const NewContract = await NewFactory.deploy(...args);
@@ -11,18 +12,18 @@ async function runDeployment(name, chainId, args = []) {
   await NewContract.deployed();
   console.log(`|| ${name} deployed to ${NewContract.address}`);
 
-  const deploymentMap = new Cache(`./utils/deploymentMap/${chainId}.json`);
+  const deploymentMap = new Cache(`./utils/evm/deploymentMap/${network}.json`);
   deploymentMap.replace(name, NewContract.address);
   console.log(`|||| Saving address...`);
 
   console.log(`|||| Saving artifacts...`);
-  const abi = new Cache(`./utils/interfaces/${name}.json`);
+  const abi = new Cache(`./utils/evm/interfaces/${name}.json`);
   abi.update({ abi: artifacts.readArtifactSync(name).abi });
 
   return NewContract;
 }
 
-async function verify(tx, options, chainId) {
+async function verify(tx, options) {
   await tx.wait();
   await new Promise((resolve) => setTimeout(resolve, 15000));
   try {
@@ -38,14 +39,14 @@ async function verify(tx, options, chainId) {
       `Reason: The Etherscan API responded that the address ${options.address} does not have bytecode.`
     ) {
       console.log('|||| Contract not indexed, re-verifying...');
-      await verify(tx, options, chainId);
+      await verify(tx, options);
     } else throw e;
   }
 }
 
-async function andVerify(name, chainId, args = [], fqn) {
-  const NewContract = await runDeployment(name, chainId, args);
-  if (!verifiable(network.name)) return NewContract;
+async function andVerify(name, network, args = [], fqn) {
+  const NewContract = await runDeployment(name, network, args);
+  if (!verifiable(network)) return NewContract;
 
   const tx = NewContract.deployTransaction;
 
@@ -55,7 +56,7 @@ async function andVerify(name, chainId, args = [], fqn) {
     contract: fqn ? fqn : undefined,
   };
 
-  await verify(tx, options, chainId);
+  await verify(tx, options, network);
 
   return NewContract;
 }

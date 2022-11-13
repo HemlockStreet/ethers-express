@@ -1,11 +1,9 @@
-require('./utils/envCheck');
-
 require('dotenv');
 const app = require('express')();
 app.use(require('body-parser').json());
 const port = process.env.PORT ? process.env.PORT : 8081;
 
-const evmConfig = new (require('./utils/evm/Config.js'))(true);
+const evm = new (require('./utils/evm/index.js'))(true);
 
 app.get('/', (req, res) => {
   res.json('Hello, welcome to my back end! Now git out.');

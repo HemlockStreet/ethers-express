@@ -1,8 +1,9 @@
 const fs = require('fs');
 
-if (!fs.existsSync(`./utils/deploymentMap`))
-  fs.mkdirSync('./utils/deploymentMap');
-if (!fs.existsSync(`./utils/interfaces`)) fs.mkdirSync('./utils/interfaces');
+if (!fs.existsSync(`./utils/evm/deploymentMap`))
+  fs.mkdirSync('./utils/evm/deploymentMap');
+if (!fs.existsSync(`./utils/evm/interfaces`))
+  fs.mkdirSync('./utils/evm/interfaces');
 if (!fs.existsSync(`.env`)) {
   fs.writeFileSync('.env', fs.readFileSync('sample.env', 'utf-8'));
   console.log(

@@ -79,57 +79,40 @@ function getCredentials(printToConsole) {
 
   const etherscan = { apiKey };
 
-  // PREPARE GAS REPORTER CREDENTIALS
-  const coinmarketcap = process.env.COINMARKETCAP_API_KEY;
-  if (printToConsole) {
-    console.log(`|||| Gas Reporter`);
-    if (coinmarketcap)
-      console.log(`||||||\x1B[92m CoinMarketCap API Key Found!\x1B[39m`);
-    else
-      console.log(
-        `||||||\x1B[33m CoinMarketCap API Key Missing! Unable to report gas consumption...\x1B[39m`
-      );
-  }
-
   // PREPARE EVM WALLET CREDENTIALS
-  const WALLET_KEYS = process.env.WALLET_KEYS;
-  if (printToConsole) console.log(`|||| Wallet Keys`);
+  const WALLET_KEY = process.env.WALLET_KEY;
+  if (printToConsole) console.log(`|||| Wallet`);
 
-  let accounts = '';
-  if (WALLET_KEYS) {
-    accounts = WALLET_KEYS.includes(',')
-      ? WALLET_KEYS.split(',')
-      : [WALLET_KEYS];
+  let account = '';
+  if (WALLET_KEY) {
+    account = WALLET_KEY;
 
     if (printToConsole) {
-      console.log(
-        `||||||\x1B[92m ${accounts.length} Wallet keys found!\x1B[39m`
-      );
-      accounts.forEach((key) => {
-        console.log(`|||||| ${new ethers.Wallet(key).address}`);
-      });
+      console.log(`||||||\x1B[92m ${WALLET_KEY}\x1B[39m`);
     }
   } else {
     if (printToConsole)
       console.log(
-        `||||||\x1B[33m Missing Wallet Keys! Generating account...\x1B[39m`
+        `||||||\x1B[33m Missing Wallet Key! Generating account...\x1B[39m`
       );
     const wallet = ethers.Wallet.createRandom();
-    acc = wallet._signingKey().privateKey;
+    account = wallet._signingKey().privateKey;
     writeFileSync(
       '.env',
-      readFileSync('.env', 'utf-8') + `WALLET_KEYS=${acc}\n`
+      readFileSync('.env', 'utf-8') + `WALLET_KEY=${newKey}\n`
     );
-    accounts = acc.split(',');
+    if (printToConsole) {
+      console.log(`||||||\x1B[92m ${wallet.address}\x1B[39m`);
+    }
   }
 
   // PREPARE NETWORK PROVIDER CREDENTIALS
   let networks = {};
   Object.keys(credentials).forEach((name) => {
-    if (deployable(name)) networks[name] = { accounts, url: deployable(name) };
+    if (deployable(name)) networks[name] = deployable(name);
   });
-
-  return { etherscan, networks, coinmarketcap };
+  networks.walletKey = account;
+  return { etherscan, networks };
 }
 
 module.exports = { getCredentials, verifiable, deployable };
