@@ -1,14 +1,15 @@
 require('dotenv');
-const app = require('express')();
-app.use(require('body-parser').json());
-const port = process.env.PORT ? process.env.PORT : 8081;
+const { PORT } = process.env;
 
 const evm = new (require('./utils/evm/index.js'))(true);
 
-app.get('/', (req, res) => {
-  res.json('Hello, welcome to my back end! Now git out.');
-});
-
+const app = require('express')();
+app.use(require('body-parser').json());
+const port = PORT ? PORT : 8081;
 app.listen(port, () => {
   console.log('Listening On Port', port);
+});
+
+app.get('/', (req, res) => {
+  res.json('Hello, welcome to my back end! Now git out.');
 });

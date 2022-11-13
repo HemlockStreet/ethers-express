@@ -1,64 +1,55 @@
 const hre = require('hardhat');
-const { artifacts } = hre;
 const ethers = require('ethers');
 const { verifiable } = require('./credentials');
 const Cache = require('../fs/Cache');
 
-async function runDeployment(name, network, args = []) {
-  console.log(`\nDeploying ${name}...`);
-  const NewFactory = await ethers.getContractFactory(name);
-  const NewContract = await NewFactory.deploy(...args);
-
-  await NewContract.deployed();
-  console.log(`|| ${name} deployed to ${NewContract.address}`);
-
-  const deploymentMap = new Cache(`./utils/evm/deploymentMap/${network}.json`);
-  deploymentMap.replace(name, NewContract.address);
-  console.log(`|||| Saving address...`);
-
-  console.log(`|||| Saving artifacts...`);
-  const abi = new Cache(`./utils/evm/interfaces/${name}.json`);
-  abi.update({ abi: artifacts.readArtifactSync(name).abi });
-
-  return NewContract;
-}
-
 async function verify(tx, options) {
-  await tx.wait();
   await new Promise((resolve) => setTimeout(resolve, 15000));
   try {
-    console.log('|| Verifying...');
     await hre.run('verify:verify', options);
-    console.log('|||| Verified!');
+    console.log('|| Contract Verified!\n');
   } catch (e) {
     const reason = e.toString().split('\n')[2];
-    if (reason === 'Reason: Already Verified')
-      console.log('|||||| Double Verified!');
-    else if (
+    if (reason === 'Reason: Already Verified') {
+      console.log('|| Contract Verified!\n');
+    } else if (
       reason ===
       `Reason: The Etherscan API responded that the address ${options.address} does not have bytecode.`
     ) {
-      console.log('|||| Contract not indexed, re-verifying...');
+      console.log('|| Contract Not Indexed! Awaiting 5 more confirmations...');
+      for (let i = 0; i < 5; i++) await tx.wait();
       await verify(tx, options);
     } else throw e;
   }
 }
 
-async function andVerify(name, network, args = [], fqn) {
-  const NewContract = await runDeployment(name, network, args);
-  if (!verifiable(network)) return NewContract;
+async function runDeployment(name, network, args = []) {
+  console.log(`\nDeploying ${name}`);
+  const contract = await (
+    await ethers.getContractFactory(name)
+  ).deploy(...args);
 
-  const tx = NewContract.deployTransaction;
+  console.log('|| Contract Deployed! Awaiting 5 confirmations...');
+  const tx = contract.deployTransaction;
+  for (let i = 0; i < 5; i++) await tx.wait();
+  new Cache(`./utils/evm/deploymentMap/${network}.json`).replace(
+    name,
+    contract.address
+  );
+  new Cache(`./utils/evm/interfaces/${name}.json`).update({
+    abi: hre.artifacts.readArtifactSync(name).abi,
+  });
 
-  const options = {
-    address: NewContract.address,
-    constructorArguments: args.filter((arg) => typeof arg !== typeof {}),
-    contract: fqn ? fqn : undefined,
-  };
-
-  await verify(tx, options, network);
-
-  return NewContract;
+  if (verifiable(network)) {
+    console.log(`Verifying ${name}`);
+    await verify(tx, {
+      address: contract.address,
+      constructorArguments: args.filter((arg) => typeof arg !== typeof {}),
+      contract: fqn ? fqn : undefined,
+    });
+  }
+  console.log();
+  return contract;
 }
 
-module.exports = { runDeployment, andVerify };
+module.exports = { runDeployment };
