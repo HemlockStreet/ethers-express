@@ -4,6 +4,13 @@ const { ethers } = require('ethers');
 const { getCredentials } = require('./credentials');
 const Cache = require('../fs/Cache');
 
+const pathTo = {
+  mapping: `./utils/evm/deploymentMap`,
+  interfaces: `./utils/evm/interfaces`,
+};
+if (!fs.existsSync(pathTo.mapping)) fs.mkdirSync(pathTo.mapping);
+if (!fs.existsSync(pathTo.abis)) fs.mkdirSync(pathTo.abis);
+
 class Evm {
   constructor(printToConsole, solidityArgs) {
     const { etherscan, networks } = getCredentials(printToConsole);
@@ -42,17 +49,12 @@ class Evm {
       addr && ethers.utils.isAddress(addr)
         ? addr
         : new Cache(`./utils/evm/deploymentMap/${network}.json`).load()[name];
+
     const providerOrSigner = this.signer(network);
     return new ethers.Contract(address, abi, providerOrSigner);
   }
 
   deploy() {
-    const pathTo = {
-      mapping: `./utils/evm/deploymentMap`,
-      interfaces: `./utils/evm/interfaces`,
-    };
-    if (!fs.existsSync(pathTo.mapping)) fs.mkdirSync(pathTo.mapping);
-    if (!fs.existsSync(pathTo.abis)) fs.mkdirSync(pathTo.abis);
     // coming soon
   }
 }
