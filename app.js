@@ -7,6 +7,8 @@ if (!fs.existsSync(`.env`)) {
   process.exit(1);
 }
 
+//
+
 require('dotenv');
 const { PORT } = process.env;
 
