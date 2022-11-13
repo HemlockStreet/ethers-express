@@ -34,9 +34,9 @@ class Evm {
     return new ethers.Wallet(this.walletKey, this.provider(network));
   }
 
-  contract(name, network, addr, interfacing) {
-    const abi = interfacing
-      ? interfacing
+  contract(name, network, addr, contractAbi) {
+    const abi = contractAbi
+      ? contractAbi
       : new Cache(`./utils/evm/interfaces/${name}.json`).load().abi;
     const address =
       addr && ethers.utils.isAddress(addr)
