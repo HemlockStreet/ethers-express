@@ -7,7 +7,7 @@ const app = require('express')();
 app.use(require('body-parser').json());
 const port = PORT ? PORT : 8081;
 app.listen(port, () => {
-  console.log('Listening On Port', port);
+  console.log('Listening On Port', port, '\n');
 });
 
 app.get('/', (req, res) => {
