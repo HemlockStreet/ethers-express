@@ -1,5 +1,5 @@
-require('./envCheck');
 require('dotenv').config();
+const fs = require('fs');
 const { ethers } = require('ethers');
 const { getCredentials } = require('./credentials');
 const Cache = require('../fs/Cache');
@@ -34,14 +34,26 @@ class Evm {
     return new ethers.Wallet(this.walletKey, this.provider(network));
   }
 
-  contract(name, network, addr) {
-    const { abi } = new Cache(`./utils/evm/interfaces/${name}.json`).load();
+  contract(name, network, addr, interface) {
+    const abi = interface
+      ? interface
+      : new Cache(`./utils/evm/interfaces/${name}.json`).load().abi;
     const address =
       addr && ethers.utils.isAddress(addr)
         ? addr
         : new Cache(`./utils/evm/deploymentMap/${network}.json`).load()[name];
     const providerOrSigner = this.signer(network);
     return new ethers.Contract(address, abi, providerOrSigner);
+  }
+
+  deploy() {
+    const pathTo = {
+      mapping: `./utils/evm/deploymentMap`,
+      interfaces: `./utils/evm/interfaces`,
+    };
+    if (!fs.existsSync(pathTo.mapping)) fs.mkdirSync(pathTo.mapping);
+    if (!fs.existsSync(pathTo.abis)) fs.mkdirSync(pathTo.abis);
+    // coming soon
   }
 }
 
