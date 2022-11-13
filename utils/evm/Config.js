@@ -64,6 +64,7 @@ class Config {
     //   });
     //   console.log('\nEvmConfig Prepared!\n');
     // }
+    console.log();
   }
 }
 

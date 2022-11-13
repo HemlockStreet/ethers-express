@@ -110,20 +110,12 @@ function getCredentials(printToConsole) {
       });
     }
   } else {
-    const num = 5;
     if (printToConsole)
       console.log(
-        `||||||\x1B[33m Missing Wallet Keys! Generating ${num} accounts...\x1B[39m`
+        `||||||\x1B[33m Missing Wallet Keys! Generating account...\x1B[39m`
       );
-
-    let acc = '';
-    for (let i = 0; i < num; i++) {
-      const wallet = ethers.Wallet.createRandom();
-      const key = wallet._signingKey().privateKey;
-      acc = acc === '' ? key : `${acc},${key}`;
-
-      if (printToConsole) console.log(`|||||| ${wallet.address}`);
-    }
+    const wallet = ethers.Wallet.createRandom();
+    acc = wallet._signingKey().privateKey;
     writeFileSync(
       '.env',
       readFileSync('.env', 'utf-8') + `WALLET_KEYS=${acc}\n`
