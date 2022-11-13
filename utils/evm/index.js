@@ -6,7 +6,7 @@ const Cache = require('../fs/Cache');
 
 const pathTo = {
   mapping: `./utils/evm/deploymentMap`,
-  interfaces: `./utils/evm/interfaces`,
+  abis: `./utils/evm/interfaces`,
 };
 if (!fs.existsSync(pathTo.mapping)) fs.mkdirSync(pathTo.mapping);
 if (!fs.existsSync(pathTo.abis)) fs.mkdirSync(pathTo.abis);
