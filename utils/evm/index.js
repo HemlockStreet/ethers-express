@@ -11,7 +11,7 @@ const pathTo = {
 if (!fs.existsSync(pathTo.mapping)) fs.mkdirSync(pathTo.mapping);
 if (!fs.existsSync(pathTo.abis)) fs.mkdirSync(pathTo.abis);
 
-class Evm {
+class EvmConfig {
   constructor(printToConsole, solidityArgs) {
     const { etherscan, networks } = getCredentials(printToConsole);
     this.etherscan = etherscan;
@@ -41,6 +41,10 @@ class Evm {
     return new ethers.Wallet(this.walletKey, this.provider(network));
   }
 
+  address() {
+    return new ethers.Wallet(this.walletKey).address;
+  }
+
   contract(name, network, addr, contractAbi) {
     const abi = contractAbi
       ? contractAbi
@@ -59,4 +63,4 @@ class Evm {
   }
 }
 
-module.exports = Evm;
+module.exports = EvmConfig;

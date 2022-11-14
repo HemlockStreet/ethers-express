@@ -20,30 +20,30 @@ const credentials = {
     scanner: process.env.POLYGONSCAN,
     provider: process.env.MUMBAI_PROVIDER,
   },
-  bsc: {
-    scanner: process.env.BSCSCAN,
-    provider: process.env.BSC_PROVIDER,
-  },
-  bscTestnet: {
-    scanner: process.env.BSCSCAN,
-    provider: process.env.BSC_TESTNET_PROVIDER,
-  },
-  opera: {
-    scanner: process.env.FTMSCAN,
-    provider: process.env.OPERA_PROVIDER,
-  },
-  ftmTestnet: {
-    scanner: process.env.FTMSCAN,
-    provider: process.env.FTM_TESTNET_PROVIDER,
-  },
-  avalanche: {
-    scanner: process.env.SNOWTRACE,
-    provider: process.env.AVALANCHE_PROVIDER,
-  },
-  avalancheFujiTestnet: {
-    scanner: process.env.SNOWTRACE,
-    provider: process.env.FUJI_PROVIDER,
-  },
+  // bsc: {
+  //   scanner: process.env.BSCSCAN,
+  //   provider: process.env.BSC_PROVIDER,
+  // },
+  // bscTestnet: {
+  //   scanner: process.env.BSCSCAN,
+  //   provider: process.env.BSC_TESTNET_PROVIDER,
+  // },
+  // opera: {
+  //   scanner: process.env.FTMSCAN,
+  //   provider: process.env.OPERA_PROVIDER,
+  // },
+  // ftmTestnet: {
+  //   scanner: process.env.FTMSCAN,
+  //   provider: process.env.FTM_TESTNET_PROVIDER,
+  // },
+  // avalanche: {
+  //   scanner: process.env.SNOWTRACE,
+  //   provider: process.env.AVALANCHE_PROVIDER,
+  // },
+  // avalancheFujiTestnet: {
+  //   scanner: process.env.SNOWTRACE,
+  //   provider: process.env.FUJI_PROVIDER,
+  // },
 };
 
 // BASIC CREDENTIAL DIAGNOSTICS

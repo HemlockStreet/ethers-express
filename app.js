@@ -11,8 +11,9 @@ if (!fs.existsSync(`.env`)) {
 
 require('dotenv');
 const { PORT } = process.env;
+const EvmConfig = require('./utils/evm/index.js');
 
-const evm = new (require('./utils/evm/index.js'))(true);
+const evm = new EvmConfig(true);
 
 const app = require('express')();
 app.use(require('body-parser').json());
@@ -21,6 +22,8 @@ app.listen(port, () => {
   console.log('Listening On Port', port, '\n');
 });
 
-app.get('/', (req, res) => {
-  res.json('Hello, welcome to my back end! Now git out.');
+app.get('/report', (req, res) => {
+  const deployer = evm.address();
+  const networks = Object.keys(evm.networks);
+  res.status(200).json({ deployer, networks });
 });
