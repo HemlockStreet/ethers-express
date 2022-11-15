@@ -2,6 +2,8 @@
 **/31337
 **/1337
 
+access.json
+
 logs
 coverage
 build/Release

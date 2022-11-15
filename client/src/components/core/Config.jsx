@@ -1,64 +1,84 @@
 import { BigNumber } from 'ethers';
-import { useContext } from 'react';
+import { useContext, useRef, useState, createContext } from 'react';
 import { Web2Context, Web3Context } from '../../App';
-import { Accordion, Card, Col, Container, Row } from 'react-bootstrap';
-import { GetBalance } from '../wagmi/GetBalance';
-import { SendGasForm } from '../wagmi/SendGasForm';
+import { Button, Card, Col, Container, Row } from 'react-bootstrap';
 
-export const uint = (bigNumber) => parseInt(bigNumber.toString());
-export const mixed = (res) =>
-  res.map((val) => {
-    if (typeof val === 'object') {
-      if (Array.isArray(val)) return mixed(val);
-      else if (BigNumber.isBigNumber(val)) return uint(val);
-      else return val.toString();
-    }
-    return val;
+import cryptoRandomString from 'crypto-random-string';
+import GetSignature from '../wagmi/SignMessage';
+import ControlPanel from './ControlPanel';
+
+export const ConfigContext = createContext(null);
+
+const newMessage = () =>
+  cryptoRandomString({
+    length: 132,
+    type: 'alphanumeric',
   });
-export const contractInterface = (name) =>
-  require(`../wagmi/interfaces/${name}.json`).abi;
 
 export default function Config() {
-  const { report, getReport } = useContext(Web2Context);
-  const { network, account, signer } = useContext(Web3Context);
+  const [signature, setSignature] = useState();
+  const message = useRef(newMessage());
+  const resetMessage = () => (message.current = newMessage());
+  const { report } = useContext(Web2Context);
+  const { account } = useContext(Web3Context);
+
+  function handleImprint(event) {
+    event.preventDefault();
+    const user = {
+      address: account.address,
+      message: Object.keys(signature)[0],
+      signature: signature[Object.keys(signature)[0]],
+    };
+    fetch('report', {
+      method: 'POST',
+      mode: 'cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user }),
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`${res.status} - ${res.statusText}`);
+        window.location.reload();
+      })
+      .catch((e) => {
+        console.error(e.toString());
+      });
+  }
 
   return (
-    <Container>
-      <Row>
-        <Card as={Col} text="black">
-          <Card.Body>
-            <Card.Title>Control Panel</Card.Title>
-            <hr />
-            <Accordion defaultActiveKey={['0']}>
-              <Accordion.Item eventKey="0">
-                <Accordion.Header>General Information</Accordion.Header>
-                <Accordion.Body>
-                  <h6>Balance</h6>
-                  Address: {report.deployer}
-                  <GetBalance addressOrName={report.deployer} watch={true} />
-                  <br />
-                  <SendGasForm to={report.deployer} />
-                  <hr />
-                  <h6>Available Networks</h6>
-                  <ul>
-                    {report.networks.map((name) => (
-                      <li key={`available-network-general-info-${name}`}>
-                        {name}
-                      </li>
-                    ))}
-                  </ul>
-                </Accordion.Body>
-              </Accordion.Item>
-              <Accordion.Item eventKey="1">
-                <Accordion.Header>Item</Accordion.Header>
-                <Accordion.Body>
-                  <h6>Available:</h6>
-                </Accordion.Body>
-              </Accordion.Item>
-            </Accordion>
-          </Card.Body>
-        </Card>
-      </Row>
-    </Container>
+    <ConfigContext.Provider
+      value={{ message, resetMessage, signature, setSignature }}
+    >
+      <Container>
+        <Row>
+          <Card as={Col} text="black">
+            <Card.Body>
+              <Card.Title>Control Panel</Card.Title>
+              <hr />
+              {report.credentials ? (
+                <ControlPanel />
+              ) : (
+                <div>
+                  <h3>First Time Setup</h3>
+                  {!signature ? (
+                    <div>
+                      <p>Please Sign this Message to imprint on the backend.</p>
+                      <GetSignature />
+                    </div>
+                  ) : (
+                    <div>
+                      <p>
+                        Ready to imprint. Please make sure you are not using a
+                        wallet with a compromised key.
+                      </p>
+                      <Button onClick={handleImprint}>Send</Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </Card.Body>
+          </Card>
+        </Row>
+      </Container>
+    </ConfigContext.Provider>
   );
 }
