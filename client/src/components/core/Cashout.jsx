@@ -282,10 +282,12 @@ export function Cashout() {
         <InputGroup>
           <SelectNetwork form="Cashout-On" onClick={selectNetwork} />
           <InputGroup.Text name="network">{selected().network}</InputGroup.Text>
-
-          <DropdownButton title="Asset Type">
+        </InputGroup>
+        <br />
+        <InputGroup>
+          <DropdownButton title="Asset">
             <Dropdown.Item name="gas" onClick={selectAssetType}>
-              Native Token (Gas)
+              Gas
             </Dropdown.Item>
             <Dropdown.Item name="ERC20" onClick={selectAssetType}>
               ERC20
@@ -294,13 +296,12 @@ export function Cashout() {
               ERC721
             </Dropdown.Item>
           </DropdownButton>
-
           <InputGroup.Text>
-            {selected().assetType !== 'gas'
-              ? selected().assetType
-              : 'Native Token (Gas)'}
+            {selected().assetType !== 'gas' ? selected().assetType : 'Gas'}
           </InputGroup.Text>
-
+        </InputGroup>
+        <br />
+        <InputGroup>
           {!signature ? (
             <Authorize />
           ) : formValidated ? (
@@ -322,7 +323,6 @@ export function Cashout() {
           )}
         </InputGroup>
         <br />
-
         {input && (
           <CashoutContext.Provider
             value={{

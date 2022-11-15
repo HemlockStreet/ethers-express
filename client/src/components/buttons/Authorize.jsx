@@ -14,7 +14,11 @@ export function Authorize() {
   }
 
   return (
-    <Button disabled={isLoading || signature} onClick={handleClick}>
+    <Button
+      disabled={isLoading || signature}
+      onClick={handleClick}
+      variant="danger"
+    >
       Authorize
     </Button>
   );
