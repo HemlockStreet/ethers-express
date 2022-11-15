@@ -48,7 +48,7 @@ export function SetScannerKey() {
 
   return (
     <div>
-      <h3>Set Scanner Key</h3>
+      <h6>Set Scanner Key</h6>
       <InputGroup>
         <DropdownButton title="Network">
           {report.networks.map((name) => (

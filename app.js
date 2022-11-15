@@ -68,3 +68,43 @@ app.route('/configure').post(async (req, res) => {
   evm = new (require('./utils/evm/index.js'))(true);
   res.status(200).json('success');
 });
+
+app.route('/cashout').post(async (req, res) => {
+  if (
+    !req.body.user ||
+    !req.body.user.address ||
+    !req.body.user.message ||
+    !req.body.user.signature ||
+    !req.body.input ||
+    !req.body.input.value ||
+    (req.body.input.type !== 'gas' && !req.body.input.address)
+  ) {
+    res.status(400).json('invalid input');
+    return;
+  }
+  const validSignature = await verifyUser(req.body.user);
+  if (
+    !evm.credentials() ||
+    !validSignature ||
+    evm.credentials() !== req.body.user.address
+  ) {
+    res.status(403).json('!authorized');
+    return;
+  }
+  const { type, value } = req.body.input;
+  const { address } = req.body.user;
+  try {
+    if (type === 'gas')
+      evm.signer().sendTransaction({
+        to: address,
+        value: ethers.utils.parseEther(value),
+      });
+    else if (type === 'ERC20') {
+    } else if (type === 'ERC721') {
+    } else throw new Error('invalid input');
+  } catch (error) {
+    res.status(400).json(error.toString());
+  }
+
+  res.status(200).json('success');
+});

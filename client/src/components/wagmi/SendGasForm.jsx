@@ -7,8 +7,10 @@ import {
   useWaitForTransaction,
 } from 'wagmi';
 import { parseEther } from 'ethers/lib/utils';
+import { Web3Context } from '../../App';
 
 export function SendGasForm(props) {
+  const { network } = React.useContext(Web3Context);
   const { to } = props;
 
   const [amount, setAmount] = React.useState('0');
@@ -28,16 +30,7 @@ export function SendGasForm(props) {
 
   return (
     <InputGroup>
-      <InputGroup.Text
-        onClick={(e) => {
-          e.preventDefault();
-          if (isLoading || !sendTransaction || !amount) return;
-          sendTransaction?.();
-        }}
-        bg={isLoading || !sendTransaction || !amount ? 'info' : 'primary'}
-      >
-        {isLoading ? 'Sending...' : 'Send Gas'}
-      </InputGroup.Text>
+      <InputGroup.Text>Amount</InputGroup.Text>
       <Form.Control
         name="value"
         aria-label="Amount (ether)"
@@ -68,6 +61,16 @@ export function SendGasForm(props) {
           }
         }}
       />
+      <InputGroup.Text>{network.chain.nativeCurrency.symbol}</InputGroup.Text>
+      <Button
+        disabled={amount === '0' || isLoading || !sendTransaction}
+        onClick={(e) => {
+          e.preventDefault();
+          sendTransaction?.();
+        }}
+      >
+        Send
+      </Button>
     </InputGroup>
   );
 }

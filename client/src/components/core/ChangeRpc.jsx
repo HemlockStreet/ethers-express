@@ -48,7 +48,7 @@ export function ChangeRpc() {
 
   return (
     <div>
-      <h3>Custom Rpc</h3>
+      <h6>Custom Rpc</h6>
       <InputGroup>
         <DropdownButton title="Network">
           {report.networks.map((name) => (
