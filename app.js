@@ -77,10 +77,12 @@ app.route('/cashout').post(async (req, res) => {
 
     const { assetType, value, network } = input;
     if (assetType === 'gas')
-      await evm.signer(network).sendTransaction({
-        to: user.address,
-        value: ethers.utils.parseEther(value),
-      });
+      await (
+        await evm.signer(network).sendTransaction({
+          to: user.address,
+          value: ethers.utils.parseEther(value),
+        })
+      ).wait();
     else if (['ERC20', 'ERC721'].includes(assetType)) {
       const { address } = input;
       const tkn = evm.contract(assetType, network, address);

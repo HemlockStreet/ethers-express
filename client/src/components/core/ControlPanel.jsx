@@ -46,13 +46,6 @@ export default function ControlPanel() {
           <hr />
           <h6>Top Up</h6>
           <SendGasForm to={report.deployer} />
-          <hr />
-          <h6>Available Networks</h6>
-          <ul>
-            {report.networks.map((name) => (
-              <li key={`available-network-general-info-${name}`}>{name}</li>
-            ))}
-          </ul>
         </Accordion.Body>
       </Accordion.Item>
       <Accordion.Item eventKey="1">
