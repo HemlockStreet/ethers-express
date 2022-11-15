@@ -5,6 +5,8 @@ import { SendGasForm } from '../wagmi/SendGasForm';
 import { Accordion, Button, InputGroup } from 'react-bootstrap';
 import { ConfigContext } from './Config';
 import { BigNumber } from 'ethers';
+import { ChangeRpc } from './ChangeRpc';
+import { SetScannerKey } from './SetScannerKey';
 
 export const uint = (bigNumber) => parseInt(bigNumber.toString());
 export const mixed = (res) =>
@@ -57,7 +59,8 @@ export default function ControlPanel() {
       <Accordion.Item eventKey="1">
         <Accordion.Header>Actions</Accordion.Header>
         <Accordion.Body>
-          <h6>Available:</h6>
+          <ChangeRpc />
+          <SetScannerKey />
         </Accordion.Body>
       </Accordion.Item>
     </Accordion>

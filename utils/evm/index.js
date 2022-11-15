@@ -45,6 +45,11 @@ class EvmConfig {
     return new ethers.Wallet(this.walletKey).address;
   }
 
+  credentials() {
+    if (!fs.existsSync('./access.json')) return;
+    else return new Cache('./access.json').load().owner;
+  }
+
   contract(name, network, addr, contractAbi) {
     const abi = contractAbi
       ? contractAbi
