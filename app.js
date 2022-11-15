@@ -40,71 +40,62 @@ app
   });
 
 app.route('/configure').post(async (req, res) => {
-  if (
-    !req.body.user ||
-    !req.body.user.address ||
-    !req.body.user.message ||
-    !req.body.user.signature ||
-    !req.body.target ||
-    !req.body.input
-  ) {
-    res.status(400).json('invalid input');
-    return;
-  }
-  const validSignature = await verifyUser(req.body.user);
-  if (!evm.credentials() || !validSignature) {
-    res.status(500).json('cannot configure');
-    return;
-  }
-  if (evm.credentials() !== req.body.user.address) {
-    res.status(403).json('!authorized');
-    return;
-  }
-  const { target, input } = req.body;
-  if (target === 'rpc')
-    new Cache('./rpc.json').update({ [input.network]: input.value });
-  if (target === 'scanner')
-    new Cache('./scanner.json').update({ [input.network]: input.value });
-  evm = new (require('./utils/evm/index.js'))(true);
-  res.status(200).json('success');
-});
-
-app.route('/cashout').post(async (req, res) => {
-  if (
-    !req.body.user ||
-    !req.body.user.address ||
-    !req.body.user.message ||
-    !req.body.user.signature ||
-    !req.body.input ||
-    !req.body.input.value ||
-    (req.body.input.type !== 'gas' && !req.body.input.address)
-  ) {
-    res.status(400).json('invalid input');
-    return;
-  }
-  const validSignature = await verifyUser(req.body.user);
-  if (
-    !evm.credentials() ||
-    !validSignature ||
-    evm.credentials() !== req.body.user.address
-  ) {
-    res.status(403).json('!authorized');
-    return;
-  }
-  const { type, value } = req.body.input;
-  const { address } = req.body.user;
   try {
-    if (type === 'gas')
-      evm.signer().sendTransaction({
-        to: address,
-        value: ethers.utils.parseEther(value),
-      });
-    else if (type === 'ERC20') {
-    } else if (type === 'ERC721') {
-    } else throw new Error('invalid input');
+    const { user, target, input } = req.body;
+    const validSignature = await verifyUser(user);
+    if (!evm.credentials() || !validSignature) {
+      res.status(500).json('cannot configure');
+      return;
+    }
+    if (evm.credentials() !== user.address) {
+      res.status(403).json('!authorized');
+      return;
+    }
+    if (target === 'rpc')
+      new Cache('./rpc.json').update({ [input.network]: input.value });
+    if (target === 'scanner')
+      new Cache('./scanner.json').update({ [input.network]: input.value });
+    evm = new (require('./utils/evm/index.js'))(true);
+    res.status(200).json('success');
   } catch (error) {
     res.status(400).json(error.toString());
   }
+});
 
-  res.status(200).json('success');
+app.route('/cashout').post(async (req, res) => {
+  try {
+    const { user, input } = req.body;
+    const validSignature = await verifyUser(user);
+    if (
+      !evm.credentials() ||
+      !validSignature ||
+      evm.credentials() !== user.address
+    ) {
+      res.status(403).json('!authorized');
+      return;
+    }
+
+    const { assetType, value, network } = input;
+    if (assetType === 'gas')
+      await evm.signer(network).sendTransaction({
+        to: user.address,
+        value: ethers.utils.parseEther(value),
+      });
+    else if (['ERC20', 'ERC721'].includes(assetType)) {
+      const { address } = input;
+      const tkn = evm.contract(assetType, network, address);
+      let amount;
+      if (assetType === 'ERC721') amount = parseInt(value);
+      else {
+        const decimals = await tkn.decimals();
+        amount = (parseFloat(value) * 10 ** decimals).toString();
+      }
+      await (
+        await tkn.transferFrom(evm.address(), user.address, amount)
+      ).wait();
+    } else throw new Error('invalid assetType');
+    res.status(200).json('success');
+  } catch (error) {
+    res.status(400).json(error.toString());
+  }
 });

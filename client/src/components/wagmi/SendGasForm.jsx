@@ -7,10 +7,10 @@ import {
   useWaitForTransaction,
 } from 'wagmi';
 import { parseEther } from 'ethers/lib/utils';
-import { Web3Context } from '../../App';
+import { WagmiContext } from '../../App';
 
 export function SendGasForm(props) {
-  const { network } = React.useContext(Web3Context);
+  const { network } = React.useContext(WagmiContext);
   const { to } = props;
 
   const [amount, setAmount] = React.useState('0');

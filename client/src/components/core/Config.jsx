@@ -1,9 +1,9 @@
 import { useContext, useRef, useState, createContext } from 'react';
-import { Web2Context, Web3Context } from '../../App';
+import { ApiContext, WagmiContext } from '../../App';
 import { Button, Card, Col, Container, Row } from 'react-bootstrap';
 
 import cryptoRandomString from 'crypto-random-string';
-import GetSignature from '../wagmi/SignMessage';
+import { Authorize } from '../buttons/Authorize';
 import ControlPanel from './ControlPanel';
 
 export const ConfigContext = createContext(null);
@@ -18,8 +18,8 @@ export default function Config() {
   const [signature, setSignature] = useState();
   const message = useRef(newMessage());
   const resetMessage = () => (message.current = newMessage());
-  const { report } = useContext(Web2Context);
-  const { account } = useContext(Web3Context);
+  const { report } = useContext(ApiContext);
+  const { account } = useContext(WagmiContext);
 
   function handleImprint(event) {
     event.preventDefault();
@@ -61,7 +61,7 @@ export default function Config() {
                   {!signature ? (
                     <div>
                       <p>Please Sign this Message to imprint on the backend.</p>
-                      <GetSignature />
+                      <Authorize />
                     </div>
                   ) : (
                     <div>

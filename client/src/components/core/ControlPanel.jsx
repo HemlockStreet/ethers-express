@@ -1,6 +1,5 @@
 import { useContext } from 'react';
-import { Web2Context, Web3Context } from '../../App';
-import { GetBalance } from '../wagmi/GetBalance';
+import { ApiContext, WagmiContext } from '../../App';
 import { SendGasForm } from '../wagmi/SendGasForm';
 import { Accordion, Button, InputGroup } from 'react-bootstrap';
 import { ConfigContext } from './Config';
@@ -23,8 +22,8 @@ export const contractInterface = (name) =>
   require(`../wagmi/interfaces/${name}.json`).abi;
 
 export default function ControlPanel() {
-  const { report, getReport } = useContext(Web2Context);
-  const { network, account, signer } = useContext(Web3Context);
+  const { report, getReport } = useContext(ApiContext);
+  const { network, account, signer } = useContext(WagmiContext);
   const { message, resetMessage, signature, setSignature } =
     useContext(ConfigContext);
 
@@ -42,10 +41,6 @@ export default function ControlPanel() {
         <Accordion.Body>
           <h6>Administrator</h6>
           {report.credentials}
-          <hr />
-          <h6>Balance</h6>
-          Fiduciary: {report.deployer}
-          <GetBalance addressOrName={report.deployer} watch={true} />
           <hr />
           <Cashout />
           <hr />

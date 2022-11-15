@@ -1,5 +1,5 @@
 import { useContext, useState } from 'react';
-import { Web2Context, Web3Context } from '../../App';
+import { ApiContext, WagmiContext } from '../../App';
 import { ConfigContext } from './Config';
 import {
   Button,
@@ -8,11 +8,11 @@ import {
   InputGroup,
   Form,
 } from 'react-bootstrap';
-import GetSignature from '../wagmi/SignMessage';
+import { Authorize } from '../buttons/Authorize';
 
 export function ChangeRpc() {
-  const { report, getReport, setSignature } = useContext(Web2Context);
-  const { account } = useContext(Web3Context);
+  const { report, getReport, setSignature } = useContext(ApiContext);
+  const { account } = useContext(WagmiContext);
   const { signature } = useContext(ConfigContext);
 
   const [selected, setSelected] = useState();
@@ -74,7 +74,7 @@ export function ChangeRpc() {
         />
 
         {!signature ? (
-          <GetSignature />
+          <Authorize />
         ) : (
           <Button
             disabled={!report.networks.includes(selected) && value !== ''}

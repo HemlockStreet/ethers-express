@@ -1,33 +1,109 @@
 import { createContext, useRef, useState, useEffect, useContext } from 'react';
-export const Web3Context = createContext(null);
-export const Web2Context = createContext(null);
 
-import { getDefaultWallets, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import {
+  getDefaultWallets,
+  RainbowKitProvider,
+  darkTheme,
+} from '@rainbow-me/rainbowkit';
+import cryptoRandomString from 'crypto-random-string';
 import * as wagmi from 'wagmi';
 import { publicProvider } from 'wagmi/providers/public';
 
 import { Container, Row, Spinner } from 'react-bootstrap';
-
 import NavigationBar from './components/core/NavigationBar';
 import Config from './components/core/Config';
 
-function Site() {
+export const WagmiContext = createContext(null);
+export const ApiContext = createContext(null);
+export const DappContext = createContext(null);
+
+const randomString = () =>
+  cryptoRandomString({
+    length: 132,
+    type: 'alphanumeric',
+  });
+
+function Dapp() {
+  const { account, network, signer } = useContext(WagmiContext);
+
+  const currentNetwork = () => {
+    const chainId = network.chain.id;
+    let name;
+    Object.keys(wagmi.chain).forEach((networkName) => {
+      const thisChain = wagmi.chain[networkName];
+      if (chainId === thisChain.id) name = networkName;
+    });
+    return name;
+  };
+
+  const idOf = (name) => wagmi.chain[name].id;
+
+  const [signature, setSignature] = useState();
+  const onRequest = () => setSignature();
+
+  const message = useRef(randomString());
+  const user = useRef();
+  const onSignature = (data) => {
+    user.current = {
+      address: account.address,
+      message: message.current,
+      signature: data,
+    };
+    message.current = randomString();
+    setSignature(true);
+  };
+
+  const [signerGasBalanceEnabled, setSignerGasBalanceEnabled] = useState(false);
+  const toggleSignerGasBalance = () =>
+    setSignerGasBalanceEnabled(!signerGasBalanceEnabled);
+  const signerGasBalance = wagmi.useBalance({
+    address: account.address,
+    enabled: signerGasBalanceEnabled,
+    watch: true,
+    formatUnits: 'ether',
+  });
+
+  return (
+    <DappContext.Provider
+      value={{
+        account,
+        network,
+        signer,
+        currentNetwork,
+        idOf,
+
+        signature,
+        onRequest,
+        message,
+        user,
+
+        onSignature,
+        signerGasBalance,
+        toggleSignerGasBalance,
+      }}
+    >
+      <Config />
+    </DappContext.Provider>
+  );
+}
+
+function Website() {
   const network = wagmi.useNetwork();
   const account = wagmi.useAccount();
   const signer = wagmi.useSigner();
 
   return (
     <div className="app">
-      <Web3Context.Provider value={{ network, account, signer }}>
+      <WagmiContext.Provider value={{ network, account, signer }}>
         <NavigationBar connect={true} />
-        <Config />
-      </Web3Context.Provider>
+        {network.chain && <Dapp />}
+      </WagmiContext.Provider>
     </div>
   );
 }
 
-function Dapp() {
-  const { report } = useContext(Web2Context);
+function Wagmi() {
+  const { report } = useContext(ApiContext);
 
   const selected = report.networks.map((name) => wagmi.chain[name]);
   const { chains, provider } = wagmi.configureChains(selected, [
@@ -41,21 +117,20 @@ function Dapp() {
 
   return (
     <wagmi.WagmiConfig client={wagmiClient('BackendFrontend', true)}>
-      <RainbowKitProvider chains={chains}>
-        <Site />
+      <RainbowKitProvider chains={chains} theme={darkTheme()}>
+        <Website />
       </RainbowKitProvider>
     </wagmi.WagmiConfig>
   );
 }
 
 export function App() {
-  // API Context
   const [report, setReport] = useState();
-  const error = useRef();
+  const error = useRef(false);
   const loading = useRef(false);
-
   async function getReport() {
     if (loading.current === true) return;
+    if (error.current) error.current = false;
     loading.current = true;
     try {
       const res = await fetch(`report`, {
@@ -78,18 +153,18 @@ export function App() {
 
   return (
     <div className="app">
-      {report === undefined ? (
+      {!report ? (
         <div>
           <NavigationBar />
           <Container>
-            {loading.current === true && (
+            {loading.current && (
               <Row>
                 <Spinner animation="border" variant="secondary" size="lg" />
                 <p>Awaiting Backend Response...</p>
               </Row>
             )}
 
-            {error.current !== undefined && (
+            {error.current !== false && (
               <Row>
                 <h3>Failure</h3>
                 <p>
@@ -102,9 +177,9 @@ export function App() {
           </Container>
         </div>
       ) : (
-        <Web2Context.Provider value={{ report, getReport }}>
-          <Dapp />
-        </Web2Context.Provider>
+        <ApiContext.Provider value={{ report, getReport }}>
+          <Wagmi />
+        </ApiContext.Provider>
       )}
     </div>
   );

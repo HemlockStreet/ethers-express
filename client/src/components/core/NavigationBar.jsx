@@ -4,19 +4,22 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 export default function NavigationBar(props) {
   const { connect } = props;
 
-  function handleClick(event) {
-    event.preventDefault();
-    // setPage(event.target.name);
-  }
-
   return (
     <div>
       <Navbar bg="dark" variant="dark" expand="lg">
         <Container>
-          <Navbar.Brand href="" name="home" onClick={handleClick}>
+          <Navbar.Brand href="" name="home">
             BackendFrontend
           </Navbar.Brand>
-          {connect && <ConnectButton />}
+          {connect && (
+            <ConnectButton
+              showBalance={false}
+              accountStatus={{
+                smallScreen: 'address',
+                largeScreen: 'full',
+              }}
+            />
+          )}
         </Container>
       </Navbar>
 
