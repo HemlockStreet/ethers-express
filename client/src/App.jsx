@@ -28,8 +28,8 @@ function Site() {
 
 function Dapp() {
   const { report } = useContext(Web2Context);
-  const selected = report.networks.map((name) => wagmi.chain[name]);
 
+  const selected = report.networks.map((name) => wagmi.chain[name]);
   const { chains, provider } = wagmi.configureChains(selected, [
     publicProvider(),
   ]);

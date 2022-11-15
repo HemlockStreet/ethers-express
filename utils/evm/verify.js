@@ -1,11 +1,11 @@
 const { request } = require('unidici');
-const ChainConfig = require('./ChainConfig');
+const ChainConfig = require('./ChainConfig.json');
 
 const process = async (deployTransaction) => {
   for (let i = 0; i < 5; i++) await deployTransaction.wait();
 };
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-const endpoint = (network) => ChainConfig[network];
+const endpoint = (network) => ChainConfig[network].url.api;
 
 async function verificationStatus(network, req, tx) {
   const urlWithQuery = new URL(endpoint(network));
@@ -22,7 +22,7 @@ async function verificationStatus(network, req, tx) {
       );
     }
   } catch (error) {
-    throw new Error('Verfier: ', error.message);
+    throw new Error('Verifier: ', error.message);
   }
 
   await handleResponse(await response.body.json(), tx);

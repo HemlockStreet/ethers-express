@@ -2,7 +2,7 @@ import { useContext } from 'react';
 import { Web2Context, Web3Context } from '../../App';
 import { GetBalance } from '../wagmi/GetBalance';
 import { SendGasForm } from '../wagmi/SendGasForm';
-import { Accordion } from 'react-bootstrap';
+import { Accordion, Button, InputGroup } from 'react-bootstrap';
 import { ConfigContext } from './Config';
 import { BigNumber } from 'ethers';
 
@@ -24,6 +24,13 @@ export default function ControlPanel() {
   const { network, account, signer } = useContext(Web3Context);
   const { message, resetMessage, signature, setSignature } =
     useContext(ConfigContext);
+
+  //   fetch('test', {
+  //     method: 'POST',
+  //     mode: 'cors',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify(chain),
+  //   });
 
   return (
     <Accordion defaultActiveKey={['0']}>

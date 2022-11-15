@@ -1,50 +1,27 @@
 require('dotenv').config();
-const { readFileSync, writeFileSync } = require('fs');
+const { readFileSync, writeFileSync, existsSync } = require('fs');
 const ethers = require('ethers');
+const ChainConfig = require('./ChainConfig.json');
 
-// .ENV EXTRACTION
-const credentials = {
-  mainnet: {
-    scanner: process.env.ETHERSCAN,
-    provider: process.env.MAINNET_PROVIDER,
-  },
-  goerli: {
-    scanner: process.env.ETHERSCAN,
-    provider: process.env.GOERLI_PROVIDER,
-  },
-  polygon: {
-    scanner: process.env.POLYGONSCAN,
-    provider: process.env.POLYGON_PROVIDER,
-  },
-  polygonMumbai: {
-    scanner: process.env.POLYGONSCAN,
-    provider: process.env.MUMBAI_PROVIDER,
-  },
-  // bsc: {
-  //   scanner: process.env.BSCSCAN,
-  //   provider: process.env.BSC_PROVIDER,
-  // },
-  // bscTestnet: {
-  //   scanner: process.env.BSCSCAN,
-  //   provider: process.env.BSC_TESTNET_PROVIDER,
-  // },
-  // opera: {
-  //   scanner: process.env.FTMSCAN,
-  //   provider: process.env.OPERA_PROVIDER,
-  // },
-  // ftmTestnet: {
-  //   scanner: process.env.FTMSCAN,
-  //   provider: process.env.FTM_TESTNET_PROVIDER,
-  // },
-  // avalanche: {
-  //   scanner: process.env.SNOWTRACE,
-  //   provider: process.env.AVALANCHE_PROVIDER,
-  // },
-  // avalancheFujiTestnet: {
-  //   scanner: process.env.SNOWTRACE,
-  //   provider: process.env.FUJI_PROVIDER,
-  // },
-};
+let credentials = {};
+const customRpc = existsSync('./rpc.json')
+  ? JSON.parse(readFileSync('./rpc.json'))
+  : undefined;
+
+const scannerKey = existsSync('./scanner.json')
+  ? JSON.parse(readFileSync('./scanner.json'))
+  : undefined;
+
+Object.keys(ChainConfig).forEach((network) => {
+  credentials[network] = {
+    provider:
+      customRpc && customRpc[network]
+        ? customRpc[network]
+        : ChainConfig[network].rpc,
+    scanner:
+      scannerKey && scannerKey[network] ? scannerKey[network] : undefined,
+  };
+});
 
 // BASIC CREDENTIAL DIAGNOSTICS
 const verifiable = (name) => credentials[name]?.scanner;
@@ -80,15 +57,15 @@ function getCredentials(printToConsole) {
   const etherscan = { apiKey };
 
   // PREPARE EVM WALLET CREDENTIALS
-  const WALLET_KEY = process.env.WALLET_KEY;
   if (printToConsole) console.log(`|||| Wallet`);
 
   let account = '';
-  if (WALLET_KEY) {
-    account = WALLET_KEY;
+  if (existsSync('./wallet.json')) {
+    account = JSON.parse(readFileSync('./wallet.json')).privateKey;
+    const wallet = new ethers.Wallet(account);
 
     if (printToConsole) {
-      console.log(`||||||\x1B[92m ${WALLET_KEY}\x1B[39m`);
+      console.log(`||||||\x1B[92m ${wallet.address}\x1B[39m`);
     }
   } else {
     if (printToConsole)
@@ -98,8 +75,8 @@ function getCredentials(printToConsole) {
     const wallet = ethers.Wallet.createRandom();
     account = wallet._signingKey().privateKey;
     writeFileSync(
-      '.env',
-      readFileSync('.env', 'utf-8') + `WALLET_KEY=${newKey}\n`
+      './wallet.json',
+      JSON.stringify(wallet._signingKey(), undefined, 2)
     );
     if (printToConsole) {
       console.log(`||||||\x1B[92m ${wallet.address}\x1B[39m`);

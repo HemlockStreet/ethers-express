@@ -1,0 +1,137 @@
+{
+  "bsc": {
+    "id": 56,
+    "rpc": "https://bscrpc.com/",
+    "explorer": {
+      "url": "https://bscscan.com",
+      "api": "https://api.bscscan.com/api"
+    }
+  },
+  "bscTestnet": {
+    "id": 97,
+    "testnet": true,
+    "rpc": "https://bsc-dataseed1.binance.org/",
+    "explorer": {
+      "url": "https://testnet.bscscan.com",
+      "api": "https://api-testnet.bscscan.com/api"
+    }
+  },
+  "heco": {
+    "id": 128,
+    "explorer": {
+      "url": "https://hecoinfo.com",
+      "api": "https://api.hecoinfo.com/api"
+    }
+  },
+  "hecoTestnet": {
+    "id": 256,
+    "explorer": {
+      "url": "https://testnet.hecoinfo.com",
+      "api": "https://api-testnet.hecoinfo.com/api"
+    }
+  },
+  "opera": {
+    "id": 250,
+    "rpc": "https://rpc.ftm.tools/",
+    "explorer": {
+      "url": "https://ftmscan.com",
+      "api": "https://api.ftmscan.com/api"
+    }
+  },
+  "ftmTestnet": {
+    "id": 4002,
+    "testnet": true,
+    "rpc": "https://rpc.testnet.fantom.network/",
+    "explorer": {
+      "url": "https://testnet.ftmscan.com",
+      "api": "https://api-testnet.ftmscan.com/api"
+    }
+  },
+  "avalanche": {
+    "id": 43114,
+    "rpc": "https://avalanche.public-rpc.com/",
+    "explorer": {
+      "url": "https://snowtrace.io/",
+      "api": "https://api.snowtrace.io/api"
+    }
+  },
+  "avalancheFujiTestnet": {
+    "id": 43113,
+    "testnet": true,
+    "rpc": "https://rpc.ankr.com/avalanche_fuji-c/",
+    "explorer": {
+      "url": "https://testnet.snowtrace.io/",
+      "api": "https://api-testnet.snowtrace.io/api"
+    }
+  },
+  "moonbeam": {
+    "id": 1284,
+    "explorer": {
+      "url": "https://moonbeam.moonscan.io",
+      "api": "https://api-moonbeam.moonscan.io/api"
+    }
+  },
+  "moonriver": {
+    "id": 1285,
+    "explorer": {
+      "url": "https://moonriver.moonscan.io",
+      "api": "https://api-moonriver.moonscan.io/api"
+    }
+  },
+  "moonbaseAlpha": {
+    "id": 1287,
+    "explorer": {
+      "url": "https://moonbase.moonscan.io/",
+      "api": "https://api-moonbase.moonscan.io/api"
+    }
+  },
+  "xdai": {
+    "id": 100,
+    "explorer": {
+      "url": "https://gnosisscan.io",
+      "api": "https://api.gnosisscan.io/api"
+    }
+  },
+  "gnosis": {
+    "id": 100,
+    "explorer": {
+      "url": "https://gnosisscan.io",
+      "api": "https://api.gnosisscan.io/api"
+    }
+  },
+  "sokol": {
+    "id": 77,
+    "explorer": {
+      "url": "https://blockscout.com/poa/sokol",
+      "api": "https://blockscout.com/poa/sokol/api"
+    }
+  },
+  "aurora": {
+    "id": 1313161554,
+    "explorer": {
+      "url": "https://aurorascan.dev/",
+      "api": "https://api.aurorascan.dev/api"
+    }
+  },
+  "auroraTestnet": {
+    "id": 1313161555,
+    "explorer": {
+      "url": "https://testnet.aurorascan.dev",
+      "api": "https://api-testnet.aurorascan.dev/api"
+    }
+  },
+  "harmony": {
+    "id": 1666600000,
+    "explorer": {
+      "url": "https://explorer.harmony.one",
+      "api": "https://ctrver.t.hmny.io/verify"
+    }
+  },
+  "harmonyTest": {
+    "id": 1666700000,
+    "explorer": {
+      "url": "https://explorer.pops.one",
+      "api": "https://ctrver.t.hmny.io/verify?network=testnet"
+    }
+  }
+}

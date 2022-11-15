@@ -3,6 +3,9 @@
 **/1337
 
 access.json
+rpc.json 
+scanner.json
+wallet.json
 
 logs
 coverage

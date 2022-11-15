@@ -1,4 +1,3 @@
-import { BigNumber } from 'ethers';
 import { useContext, useRef, useState, createContext } from 'react';
 import { Web2Context, Web3Context } from '../../App';
 import { Button, Card, Col, Container, Row } from 'react-bootstrap';
