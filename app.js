@@ -14,6 +14,8 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+app.listen(port, () => console.log('Listening On Port', port, '\n'));
+
 //
 
 const ethers = require('ethers');
@@ -110,5 +112,3 @@ app.route('/cashout').post(async (req, res) => {
     res.status(400).json(error.toString());
   }
 });
-
-app.listen(port, () => console.log('Listening On Port', port, '\n'));
