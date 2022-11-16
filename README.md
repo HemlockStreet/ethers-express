@@ -18,12 +18,4 @@ tbd
 
 ## API Keys
 
-and where to find them...
-
-- [ETHERSCAN](https://etherscan.io/)
-- [POLYGONSCAN](https://polygonscan.com/)
-- [BSCSCAN](https://bscscan.com/)
-- [FTMSCAN](https://ftmscan.com/)
-- [SNOWTRACE](https://snowtrace.io/)
-
-for others, please check `./utils/evm/ChainConfig` for the appropriate block scanner websites
+Please check `./utils/evm/ChainConfig` for the appropriate block scanner websites.

@@ -3,11 +3,6 @@ require('dotenv').config();
 const fs = require('fs');
 const express = require('express');
 const bodyParser = require('body-parser');
-const ethers = require('ethers');
-
-const Cache = require('./utils/fs/Cache');
-let evm = new (require('./utils/evm/index.js'))(true);
-
 const app = express();
 const port = process.env.PORT ? process.env.PORT : 8081;
 
@@ -18,6 +13,12 @@ if (process.env.NODE_ENV === 'production') {
     res.sendFile('./client/build/index.html');
   });
 }
+
+//
+
+const ethers = require('ethers');
+const Cache = require('./utils/fs/Cache');
+let evm = new (require('./utils/evm/index.js'))(true);
 
 async function verifyUser(user) {
   const { address, signature, message } = user;
