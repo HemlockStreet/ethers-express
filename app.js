@@ -1,15 +1,23 @@
-require('dotenv');
-const port = process.env.PORT ? process.env.PORT : 8081;
-const app = require('express')();
-app.use(require('body-parser').json());
-app.listen(port, () => {
-  console.log('Listening On Port', port, '\n');
-});
-//
+require('dotenv').config();
+
 const fs = require('fs');
-const Cache = require('./utils/fs/Cache');
+const express = require('express');
+const bodyParser = require('body-parser');
 const ethers = require('ethers');
+
+const Cache = require('./utils/fs/Cache');
 let evm = new (require('./utils/evm/index.js'))(true);
+
+const app = express();
+const port = process.env.PORT ? process.env.PORT : 8081;
+
+app.use(bodyParser.json());
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static('./client/build'));
+  app.get('/', (req, res) => {
+    res.sendFile('./client/build/index.html');
+  });
+}
 
 async function verifyUser(user) {
   const { address, signature, message } = user;
@@ -101,3 +109,5 @@ app.route('/cashout').post(async (req, res) => {
     res.status(400).json(error.toString());
   }
 });
+
+app.listen(port, () => console.log('Listening On Port', port, '\n'));
