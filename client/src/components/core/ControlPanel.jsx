@@ -4,7 +4,7 @@ import { SendGasForm } from '../wagmi/SendGasForm';
 import { Accordion, Button, InputGroup } from 'react-bootstrap';
 import { ConfigContext } from './Config';
 import { BigNumber } from 'ethers';
-import { ChangeRpc } from './ChangeRpc';
+import CustomConfig from './CustomConfig';
 import { SetScannerKey } from './SetScannerKey';
 import { Cashout } from './Cashout';
 
@@ -22,17 +22,7 @@ export const contractInterface = (name) =>
   require(`../wagmi/interfaces/${name}.json`).abi;
 
 export default function ControlPanel() {
-  const { report, getReport } = useContext(ApiContext);
-  const { network, account, signer } = useContext(WagmiContext);
-  const { message, resetMessage, signature, setSignature } =
-    useContext(ConfigContext);
-
-  //   fetch('test', {
-  //     method: 'POST',
-  //     mode: 'cors',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify(chain),
-  //   });
+  const { report } = useContext(ApiContext);
 
   return (
     <Accordion defaultActiveKey={['0']}>
@@ -51,9 +41,7 @@ export default function ControlPanel() {
       <Accordion.Item eventKey="1">
         <Accordion.Header>Config</Accordion.Header>
         <Accordion.Body>
-          <ChangeRpc />
-          <hr />
-          <SetScannerKey />
+          <CustomConfig />
         </Accordion.Body>
       </Accordion.Item>
     </Accordion>

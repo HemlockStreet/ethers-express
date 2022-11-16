@@ -41,18 +41,24 @@ app
     res.status(200).json({ deployer, networks, credentials });
   })
   .post(async (req, res) => {
-    const validSignature = await verifyUser(req.body.user);
-    if (fs.existsSync('./access.json') || !validSignature) {
-      res.status(500).json('cannot imprint');
-      return;
+    try {
+      const { user } = req.body;
+      console.log(req.body);
+      const validSignature = await verifyUser(user);
+      console.log(validSignature);
+      if (fs.existsSync('./access.json') || !validSignature)
+        throw new Error('cannot imprint');
+
+      new Cache('./access.json').update({ owner: user.address });
+      res.status(200).json('success');
+    } catch (error) {
+      res.status(400).json(error.toString());
     }
-    new Cache('./access.json').update({ owner: req.body.user.address });
-    res.status(200).json('success');
   });
 
 app.route('/configure').post(async (req, res) => {
   try {
-    const { user, target, input } = req.body;
+    const { user, input } = req.body;
     const validSignature = await verifyUser(user);
     if (!evm.credentials() || !validSignature) {
       res.status(500).json('cannot configure');
@@ -62,9 +68,9 @@ app.route('/configure').post(async (req, res) => {
       res.status(403).json('!authorized');
       return;
     }
-    if (target === 'rpc')
+    if (input.target === 'rpc')
       new Cache('./rpc.json').update({ [input.network]: input.value });
-    if (target === 'scanner')
+    if (input.target === 'scanner')
       new Cache('./scanner.json').update({ [input.network]: input.value });
     evm = new (require('./utils/evm/index.js'))(true);
     res.status(200).json('success');

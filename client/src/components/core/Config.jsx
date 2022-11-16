@@ -1,5 +1,5 @@
 import { useContext, useRef, useState, createContext } from 'react';
-import { ApiContext, WagmiContext } from '../../App';
+import { ApiContext, DappContext, WagmiContext } from '../../App';
 import { Button, Card, Col, Container, Row } from 'react-bootstrap';
 
 import cryptoRandomString from 'crypto-random-string';
@@ -15,69 +15,70 @@ const newMessage = () =>
   });
 
 export default function Config() {
-  const [signature, setSignature] = useState();
-  const message = useRef(newMessage());
-  const resetMessage = () => (message.current = newMessage());
+  const { user, signature, onRequest } = useContext(DappContext);
+
   const { report } = useContext(ApiContext);
-  const { account } = useContext(WagmiContext);
+
+  const validating = useRef(false);
+  const [feedback, setFeedback] = useState();
 
   function handleImprint(event) {
     event.preventDefault();
-    const user = {
-      address: account.address,
-      message: Object.keys(signature)[0],
-      signature: signature[Object.keys(signature)[0]],
-    };
+    if (validating.current) return;
+    validating.current = true;
     fetch('report', {
       method: 'POST',
       mode: 'cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user }),
+      body: JSON.stringify({ user: user.current }),
     })
       .then(async (res) => {
-        if (!res.ok) throw new Error(`${res.status} - ${res.statusText}`);
+        const data = await res.json();
+        if (!res.ok)
+          throw new Error(
+            `${res.status} - ${res.statusText} - ${data.toString()}`
+          );
+        setFeedback(data.toString());
+        onRequest();
+        await new Promise((resolve) => setTimeout(resolve, 5000));
         window.location.reload();
       })
-      .catch((e) => {
-        console.error(e.toString());
-      });
+      .catch((e) => setFeedback(e.toString()))
+      .finally(() => (validating.current = false));
   }
 
   return (
-    <ConfigContext.Provider
-      value={{ message, resetMessage, signature, setSignature }}
-    >
-      <Container>
-        <Row>
-          <Card as={Col} text="black">
-            <Card.Body>
-              <Card.Title>Control Panel</Card.Title>
-              <hr />
-              {report.credentials ? (
-                <ControlPanel />
-              ) : (
-                <div>
-                  <h3>First Time Setup</h3>
-                  {!signature ? (
-                    <div>
-                      <p>Please Sign this Message to imprint on the backend.</p>
-                      <Authorize />
-                    </div>
-                  ) : (
-                    <div>
-                      <p>
-                        Ready to imprint. Please make sure you are not using a
-                        wallet with a compromised key.
-                      </p>
-                      <Button onClick={handleImprint}>Send</Button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </Card.Body>
-          </Card>
-        </Row>
-      </Container>
-    </ConfigContext.Provider>
+    <Container>
+      <Row>
+        <Card as={Col} text="black">
+          <Card.Body>
+            <Card.Title>Control Panel</Card.Title>
+            <hr />
+            {report.credentials ? (
+              <ControlPanel />
+            ) : (
+              <div>
+                <h3>First Time Setup</h3>
+                {!signature ? (
+                  <div>
+                    <p>Please Sign this Message to imprint on the backend.</p>
+                    <Authorize />
+                  </div>
+                ) : (
+                  <div>
+                    <p>
+                      Ready to imprint. Please make sure you are not using a
+                      wallet with a compromised key.
+                    </p>
+                    <Button onClick={handleImprint}>Send</Button>
+                  </div>
+                )}
+                {feedback && <div>{feedback}</div>}
+              </div>
+            )}
+          </Card.Body>
+        </Card>
+      </Row>
+    </Container>
   );
 }

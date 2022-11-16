@@ -115,9 +115,7 @@ export function Cashout() {
         onRequest();
       })
       .catch((e) => setFeedback(e.toString()))
-      .finally(() => {
-        validating.current = false;
-      });
+      .finally(() => (validating.current = false));
   }
 
   function selectNetwork(event) {
