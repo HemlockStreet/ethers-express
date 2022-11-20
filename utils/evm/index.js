@@ -38,6 +38,8 @@ class EvmConfig {
             optimizer: { ...optimizer, ...solidityArgs.settings.optimizer },
           },
         };
+
+    this.busy = false;
     console.log();
   }
 

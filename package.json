@@ -19,6 +19,12 @@
     "concurrently": "^7.5.0"
   },
   "nodemonConfig": {
-    "ignore": []
+    "ignore": [
+      "config.json",
+      "/client/src",
+      "/utils/evm/deployments",
+      "/utils/evm/interfaces",
+      "/utils/evm/hardhat"
+    ]
   }
 }
