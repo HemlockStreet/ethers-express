@@ -1,6 +1,7 @@
 {
   "name": "ethers-express-boilerplate",
   "scripts": {
+    "setup": "npm i && cd client && npm i && cd ../utils/evm/hardhat && npm i",
     "dev:server": "nodemon app.js dev",
     "dev:client": "cd client && yarn start",
     "dev": "concurrently --kill-others-on-fail \"yarn dev:server\" \"yarn dev:client\"",

@@ -30,7 +30,7 @@ class EvmConfig {
 
     const optimizer = { enabled: true, runs: 200 };
     this.solidity = !solidityArgs
-      ? { settings: { optimizer } }
+      ? { version: '0.8.17', settings: { optimizer } }
       : {
           ...solidityArgs,
           settings: {
@@ -38,6 +38,13 @@ class EvmConfig {
             optimizer: { ...optimizer, ...solidityArgs.settings.optimizer },
           },
         };
+
+    new Cache('./utils/evm/hardhat/config.json').update({
+      solidity: this.solidity,
+      etherscan,
+      networks,
+      gasReporter,
+    });
 
     this.busy = false;
     console.log();
