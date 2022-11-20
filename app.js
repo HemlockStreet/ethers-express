@@ -1,28 +1,23 @@
 require('dotenv').config();
-
-const fs = require('fs');
+const port = process.env.PORT ? process.env.PORT : 8080;
 const express = require('express');
 const bodyParser = require('body-parser');
-const app = express();
-const port = process.env.PORT ? process.env.PORT : 8081;
-
-app.use(bodyParser.json());
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static('./client/build'));
-  app.get('/', (req, res) => {
-    res.sendFile('./client/build/index.html');
-  });
-}
-
-app.listen(port, () => console.log('Listening On Port', port, '\n'));
-
-//
 
 const ethers = require('ethers');
 const Cache = require('./utils/fs/Cache');
-let evm = new (require('./utils/evm/index.js'))(true);
+const EvmConfig = require('./utils/evm/index.js');
 
-async function verifyUser(user) {
+const app = express();
+app.use(bodyParser.json());
+if (process.argv[2] !== 'dev') {
+  app.use(express.static('./client/build'));
+  app.get('/', (req, res) => res.sendFile('./client/build/index.html'));
+}
+app.listen(port, () => console.log(`Listening On port:${port}\n`));
+
+let evm = new EvmConfig(true);
+
+async function validateSignature(user) {
   const { address, signature, message } = user;
   try {
     const signerAddr = await ethers.utils.verifyMessage(message, signature);
@@ -32,67 +27,88 @@ async function verifyUser(user) {
   }
 }
 
+app.get('/sitrep', (req, res) =>
+  res.status(200).json({
+    deployer: evm.address(),
+    networks: Object.keys(evm.networks),
+    admin: evm.admin,
+  })
+);
+
 app
-  .route('/report')
-  .get((req, res) => {
-    const deployer = evm.address();
-    const networks = Object.keys(evm.networks);
-    const credentials = evm.credentials();
-    res.status(200).json({ deployer, networks, credentials });
+  .route('/config')
+  .get(async (req, res) => {
+    const { address } = req.headers;
+    const censor = address !== evm.admin;
+    res.status(200).json({
+      rpc: evm.availableNetworks(censor),
+      scanner: evm.availableScanners(censor),
+      gasReporter: evm.gasReporterSettings(censor),
+    });
   })
   .post(async (req, res) => {
+    const config = new Cache('./config.json');
     try {
-      const { user } = req.body;
-      console.log(req.body);
-      const validSignature = await verifyUser(user);
-      console.log(validSignature);
-      if (fs.existsSync('./access.json') || !validSignature)
-        throw new Error('cannot imprint');
+      const { user, input } = req.body;
+      const { target } = input;
 
-      new Cache('./access.json').update({ owner: user.address });
+      if (!['setup', 'scanner', 'rpc', 'gasReporter'].includes(target))
+        throw new Error(`invalid target: ${target}`);
+
+      let changes;
+      if (target === 'setup') {
+        if (evm.admin) throw new Error('already setup');
+        else changes = { admin: user.address };
+      }
+
+      if (!changes) {
+        if (!evm.admin) throw new Error('!setup');
+        if (evm.admin !== user.address) throw new Error('!authorized');
+
+        const { value } = input;
+        if (target === 'gasReporter') {
+          const { enabled, coinmarketcap, currency } = value;
+          const outputFile = value.outputFile;
+          const excludeContracts = value.excludeContracts;
+          const gasReporter = {
+            enabled,
+            coinmarketcap,
+            currency,
+            outputFile,
+            excludeContracts,
+          };
+          changes = { gasReporter };
+        } else {
+          const { network } = input;
+          const data = config.load();
+          changes = data[target]
+            ? { [target]: { ...data[target], [network]: value } }
+            : { [target]: { [network]: value } };
+        }
+      }
+
+      if (!(await validateSignature(user))) throw new Error('signature !valid');
+
+      config.update(changes);
+      evm = new EvmConfig();
       res.status(200).json('success');
     } catch (error) {
       res.status(400).json(error.toString());
     }
   });
 
-app.route('/configure').post(async (req, res) => {
+app.post('/cashout', async (req, res) => {
   try {
     const { user, input } = req.body;
-    const validSignature = await verifyUser(user);
-    if (!evm.credentials() || !validSignature) {
-      res.status(500).json('cannot configure');
-      return;
-    }
-    if (evm.credentials() !== user.address) {
-      res.status(403).json('!authorized');
-      return;
-    }
-    if (input.target === 'rpc')
-      new Cache('./rpc.json').update({ [input.network]: input.value });
-    if (input.target === 'scanner')
-      new Cache('./scanner.json').update({ [input.network]: input.value });
-    evm = new (require('./utils/evm/index.js'))(true);
-    res.status(200).json('success');
-  } catch (error) {
-    res.status(400).json(error.toString());
-  }
-});
+    if (!evm.admin) throw new Error('!setup');
+    if (evm.admin !== user.address) throw new Error('!authorized');
+    if (!(await validateSignature(user))) throw new Error('signature !valid');
+    const { network } = input;
+    if (!Object.keys(evm.networks).includes(network))
+      throw new Error('network !valid');
 
-app.route('/cashout').post(async (req, res) => {
-  try {
-    const { user, input } = req.body;
-    const validSignature = await verifyUser(user);
-    if (
-      !evm.credentials() ||
-      !validSignature ||
-      evm.credentials() !== user.address
-    ) {
-      res.status(403).json('!authorized');
-      return;
-    }
+    const { assetType, value } = input;
 
-    const { assetType, value, network } = input;
     if (assetType === 'gas')
       await (
         await evm.signer(network).sendTransaction({
@@ -112,7 +128,7 @@ app.route('/cashout').post(async (req, res) => {
       await (
         await tkn.transferFrom(evm.address(), user.address, amount)
       ).wait();
-    } else throw new Error('invalid assetType');
+    } else throw new Error('assetType !valid');
     res.status(200).json('success');
   } catch (error) {
     res.status(400).json(error.toString());

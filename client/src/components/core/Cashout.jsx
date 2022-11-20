@@ -13,7 +13,6 @@ import { chain, useBalance, useProvider, useContract } from 'wagmi';
 import { isAddress } from 'ethers/lib/utils';
 import SelectNetwork from '../forms/NetworkSelection';
 import { UintForm } from '../forms/FormControls';
-import { ethers } from 'ethers';
 
 const nftAbi = require(`../wagmi/interfaces/ERC721.json`).abi;
 const tknAbi = require(`../wagmi/interfaces/ERC20.json`).abi;

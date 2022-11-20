@@ -5,10 +5,12 @@ class Cache {
     this.pathTo = pathTo;
   }
 
+  exists() {
+    return fs.existsSync(this.pathTo);
+  }
+
   load() {
-    return fs.existsSync(this.pathTo)
-      ? JSON.parse(fs.readFileSync(this.pathTo))
-      : {};
+    return this.exists() ? JSON.parse(fs.readFileSync(this.pathTo)) : {};
   }
 
   prepare(data) {

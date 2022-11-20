@@ -1,22 +1,12 @@
 import { useContext, useRef, useState, createContext } from 'react';
-import { ApiContext, DappContext, WagmiContext } from '../../App';
+import { ApiContext, DappContext } from '../../App';
 import { Button, Card, Col, Container, Row } from 'react-bootstrap';
 
-import cryptoRandomString from 'crypto-random-string';
 import { Authorize } from '../buttons/Authorize';
 import ControlPanel from './ControlPanel';
 
-export const ConfigContext = createContext(null);
-
-const newMessage = () =>
-  cryptoRandomString({
-    length: 132,
-    type: 'alphanumeric',
-  });
-
 export default function Config() {
-  const { user, signature, onRequest } = useContext(DappContext);
-
+  const { user, signature } = useContext(DappContext);
   const { report } = useContext(ApiContext);
 
   const validating = useRef(false);
@@ -26,11 +16,11 @@ export default function Config() {
     event.preventDefault();
     if (validating.current) return;
     validating.current = true;
-    fetch('report', {
+    fetch('config', {
       method: 'POST',
       mode: 'cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user: user.current }),
+      body: JSON.stringify({ user: user.current, input: { target: 'setup' } }),
     })
       .then(async (res) => {
         const data = await res.json();
@@ -38,9 +28,7 @@ export default function Config() {
           throw new Error(
             `${res.status} - ${res.statusText} - ${data.toString()}`
           );
-        setFeedback(data.toString());
-        onRequest();
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        await new Promise((r) => setTimeout(r, 3000));
         window.location.reload();
       })
       .catch((e) => setFeedback(e.toString()))
@@ -54,7 +42,7 @@ export default function Config() {
           <Card.Body>
             <Card.Title>Control Panel</Card.Title>
             <hr />
-            {report.credentials ? (
+            {report.admin ? (
               <ControlPanel />
             ) : (
               <div>
@@ -70,7 +58,12 @@ export default function Config() {
                       Ready to imprint. Please make sure you are not using a
                       wallet with a compromised key.
                     </p>
-                    <Button onClick={handleImprint}>Send</Button>
+                    <Button
+                      disabled={validating.current}
+                      onClick={handleImprint}
+                    >
+                      Send
+                    </Button>
                   </div>
                 )}
                 {feedback && <div>{feedback}</div>}

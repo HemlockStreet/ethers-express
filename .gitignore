@@ -1,10 +1,9 @@
 **/31337
 **/1337
 
-access.json
-wallet.json
-rpc.json 
-scanner.json
+config.json
+
+utils/reference/
 
 logs
 coverage

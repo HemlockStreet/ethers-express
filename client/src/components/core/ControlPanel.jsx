@@ -1,11 +1,9 @@
 import { useContext } from 'react';
-import { ApiContext, WagmiContext } from '../../App';
+import { ApiContext } from '../../App';
 import { SendGasForm } from '../wagmi/SendGasForm';
-import { Accordion, Button, InputGroup } from 'react-bootstrap';
-import { ConfigContext } from './Config';
+import { Accordion } from 'react-bootstrap';
 import { BigNumber } from 'ethers';
 import CustomConfig from './CustomConfig';
-import { SetScannerKey } from './SetScannerKey';
 import { Cashout } from './Cashout';
 
 export const uint = (bigNumber) => parseInt(bigNumber.toString());
@@ -30,7 +28,7 @@ export default function ControlPanel() {
         <Accordion.Header>General</Accordion.Header>
         <Accordion.Body>
           <h6>Administrator</h6>
-          {report.credentials}
+          {report.admin}
           <hr />
           <Cashout />
           <hr />

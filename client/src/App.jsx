@@ -133,7 +133,7 @@ export function App() {
     if (error.current) error.current = false;
     loading.current = true;
     try {
-      const res = await fetch(`report`, {
+      const res = await fetch(`sitrep`, {
         mode: 'cors',
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },

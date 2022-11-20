@@ -46,7 +46,7 @@ export default function CustomConfig() {
     event.preventDefault();
     if (validating.current) return;
     validating.current = true;
-    fetch('configure', {
+    fetch('config', {
       method: 'POST',
       mode: 'cors',
       headers: { 'Content-Type': 'application/json' },
@@ -70,7 +70,7 @@ export default function CustomConfig() {
 
   return (
     <div>
-      <h6>Customize</h6>
+      <h6>Custom RPC & Scanner API Keys</h6>
       <InputGroup>
         <SelectNetwork form="Customize" onClick={selectNetwork} />
         <InputGroup.Text>{input.network}</InputGroup.Text>

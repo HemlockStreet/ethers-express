@@ -1,38 +1,30 @@
-require('dotenv').config();
-const { readFileSync, writeFileSync, existsSync } = require('fs');
 const ethers = require('ethers');
 const ChainConfig = require('./ChainConfig.json');
+const Cache = require('../fs/Cache');
 
 let credentials = {};
-const customRpc = existsSync('./rpc.json')
-  ? JSON.parse(readFileSync('./rpc.json'))
-  : undefined;
-
-const scannerKey = existsSync('./scanner.json')
-  ? JSON.parse(readFileSync('./scanner.json'))
-  : undefined;
+let hide = {};
+const cache = new Cache('./config.json');
+const config = cache.load();
+const rpc = config.rpc;
+const scan = config.scanner;
 
 Object.keys(ChainConfig).forEach((network) => {
-  credentials[network] = {
-    provider:
-      customRpc && customRpc[network]
-        ? customRpc[network]
-        : ChainConfig[network].rpc,
-    scanner:
-      scannerKey && scannerKey[network] ? scannerKey[network] : undefined,
-  };
+  let provider, scanner;
+  if (rpc && rpc[network]) {
+    provider = rpc[network];
+    if (scan && scan[network]) scanner = scan[network];
+    hide[network] = true;
+  } else provider = ChainConfig[network].rpc;
+  credentials[network] = { provider, scanner };
 });
 
-// BASIC CREDENTIAL DIAGNOSTICS
 const verifiable = (name) => credentials[name]?.scanner;
-const deployable = (name) => credentials[name].provider;
+const deployable = (name) => credentials[name]?.provider;
 
 function getCredentials(printToConsole) {
-  // PREPARE HARDHAT VERIFIER CREDENTIALS
   if (printToConsole)
-    console.log(
-      '\nPreparing EvmConfig...\n\n|| Credentials\n|||| Scanners & Providers'
-    );
+    console.log('\n@EvmConfig\n\n|| Credentials\n|||| Scanners & Providers');
 
   let apiKey = {};
   Object.keys(credentials).forEach((name) => {
@@ -43,53 +35,56 @@ function getCredentials(printToConsole) {
         );
       else {
         apiKey[name] = verifiable(name);
-
-        if (printToConsole) console.log(`||||||\x1B[92m ${name}\x1B[39m`);
+        if (printToConsole)
+          console.log(
+            `||||||\x1B[92m ${name}\x1B[39m (Able to Deploy && Verify)`
+          );
       }
-    } else {
-      if (printToConsole)
-        console.log(
-          `|||||| \x1B[31m${name} \x1B[39m - Provider Missing (Unable to Deploy)`
-        );
-    }
+    } else if (printToConsole)
+      console.log(
+        `|||||| \x1B[31m${name} \x1B[39m - Provider Missing (Unable to Deploy || Verify)`
+      );
   });
-
   const etherscan = { apiKey };
 
-  // PREPARE EVM WALLET CREDENTIALS
   if (printToConsole) console.log(`|||| Wallet`);
-
-  let account = '';
-  if (existsSync('./wallet.json')) {
-    account = JSON.parse(readFileSync('./wallet.json')).privateKey;
-    const wallet = new ethers.Wallet(account);
-
-    if (printToConsole) {
-      console.log(`||||||\x1B[92m ${wallet.address}\x1B[39m`);
-    }
+  let account, wallet;
+  if (config.wallet) {
+    account = config.wallet.privateKey;
+    wallet = new ethers.Wallet(account);
   } else {
     if (printToConsole)
-      console.log(
-        `||||||\x1B[33m Missing Wallet Key! Generating account...\x1B[39m`
-      );
-    const wallet = ethers.Wallet.createRandom();
-    account = wallet._signingKey().privateKey;
-    writeFileSync(
-      './wallet.json',
-      JSON.stringify(wallet._signingKey(), undefined, 2)
-    );
-    if (printToConsole) {
-      console.log(`||||||\x1B[92m ${wallet.address}\x1B[39m`);
-    }
+      console.log(`||||||\x1B[33m Missing Wallet Key! Generating...\x1B[39m`);
+    wallet = ethers.Wallet.createRandom();
+    const data = wallet._signingKey();
+    account = data.privateKey;
+    cache.update({ wallet: data });
   }
+  if (printToConsole) console.log(`||||||\x1B[92m ${wallet.address}\x1B[39m`);
 
-  // PREPARE NETWORK PROVIDER CREDENTIALS
   let networks = {};
   Object.keys(credentials).forEach((name) => {
-    if (deployable(name)) networks[name] = deployable(name);
+    const url = deployable(name);
+    const accounts = [account];
+    if (url) networks[name] = { url, accounts };
   });
-  networks.walletKey = account;
-  return { etherscan, networks };
+
+  console.log(`|||| Gas Reporter`);
+  let gasReporter = config.gasReporter;
+  if (gasReporter) {
+    if (!gasReporter.coinmarketcap) {
+      gasReporter.enabled = false;
+      console.log('|||||| \x1B[33mNo CoinMarketCap API Key\x1B[39m (Disabled)');
+    }
+    if (gasReporter.outputFile) gasReporter.noColors = true;
+  }
+
+  const admin = config.admin;
+
+  return {
+    evm: { etherscan, networks, gasReporter },
+    api: { account, admin, hide },
+  };
 }
 
 module.exports = { getCredentials, verifiable, deployable };
