@@ -3,6 +3,7 @@ const fs = require('fs');
 const { ethers } = require('ethers');
 const { getCredentials } = require('./credentials');
 const Cache = require('../fs/Cache');
+const { exec, spawn } = require('node:child_process');
 
 const pathTo = {
   mapping: `./utils/evm/deployments`,
@@ -29,8 +30,13 @@ class EvmConfig {
     this.admin = admin;
 
     const optimizer = { enabled: true, runs: 200 };
+    const pkg = require('../../package.json');
+    let version = pkg.dependencies.solc
+      ? pkg.dependencies.solc
+      : pkg.devDependencies.solc;
+    if (version.includes('^')) version = version.split('^')[1];
     this.solidity = !solidityArgs
-      ? { version: '0.8.17', settings: { optimizer } }
+      ? { version, settings: { optimizer } }
       : {
           ...solidityArgs,
           settings: {
@@ -103,8 +109,15 @@ class EvmConfig {
     return new ethers.Contract(address, abi, providerOrSigner);
   }
 
-  deploy() {
-    // coming soon
+  async deploy() {
+    if (this.busy) throw new Error('DEPLOY: wallet key busy');
+    this.busy = true;
+    exec('"./bin/deploy.sh"', (err, stdout, stderr) => {
+      if (!err) console.log(stdout);
+      else console.error(err);
+    });
+    console.log(result);
+    this.busy = false;
   }
 }
 

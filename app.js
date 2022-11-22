@@ -17,6 +17,8 @@ app.listen(port, () => console.log(`Listening On port:${port}\n`));
 
 let evm = new EvmConfig(true);
 
+if (!evm.busy) evm.deploy();
+
 async function validateSignature(user) {
   const { address, signature, message } = user;
   try {
