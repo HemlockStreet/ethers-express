@@ -3,7 +3,26 @@ const fs = require('fs');
 const { ethers } = require('ethers');
 const { getCredentials } = require('./credentials');
 const Cache = require('../fs/Cache');
-const { exec, spawn } = require('node:child_process');
+const child_process = require('child_process');
+const process = require('process');
+
+function spawn(...command) {
+  let p = child_process.spawn(command[0], command.slice(1));
+  return new Promise((resolveFunc) => {
+    p.stdout.on('data', (x) => process.stdout.write(x.toString()));
+    p.stderr.on('data', (x) => process.stderr.write(x.toString()));
+    p.on('exit', (code) => resolveFunc(code));
+  });
+}
+
+function exec(...command) {
+  let p = child_process.exec(command[0], command.slice(1));
+  return new Promise((resolveFunc) => {
+    p.stdout.on('data', (x) => process.stdout.write(x.toString()));
+    p.stderr.on('data', (x) => process.stderr.write(x.toString()));
+    p.on('exit', (code) => resolveFunc(code));
+  });
+}
 
 const pathTo = {
   mapping: `./utils/evm/deployments`,
@@ -112,11 +131,7 @@ class EvmConfig {
   async deploy() {
     if (this.busy) throw new Error('DEPLOY: wallet key busy');
     this.busy = true;
-    exec('"./bin/deploy.sh"', (err, stdout, stderr) => {
-      if (!err) console.log(stdout);
-      else console.error(err);
-    });
-    console.log(result);
+    await exec('"./bin/deploy.sh"');
     this.busy = false;
   }
 }
